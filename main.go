@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TEST
 // Message represents a message in our system
 type Message struct {
 	gorm.Model
@@ -28,7 +29,7 @@ func main() {
 	}
 
 	// Auto migrate the schema
-db.AutoMigrate(&Message{})
+	db.AutoMigrate(&Message{})
 
 	// Initialize Gin router
 	r := gin.Default()
