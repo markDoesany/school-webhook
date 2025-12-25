@@ -30,7 +30,10 @@ def leaderboard():
     token = os.environ["GITHUB_TOKEN"]
 
     # Time window: last 7 days
-    since = (datetime.utcnow() - timedelta(days=7)).isoformat() + "Z"
+    now = datetime.utcnow()
+    since_dt = now - timedelta(days=7)
+    since = since_dt.isoformat() + "Z"
+
     url = f"https://api.github.com/repos/{repo}/commits?since={since}"
     headers = {"Authorization": f"token {token}"}
     resp = requests.get(url, headers=headers)
@@ -39,11 +42,22 @@ def leaderboard():
     authors = [c["commit"]["author"]["name"] for c in commits if "commit" in c]
     leaderboard = Counter(authors).most_common()
 
+    # Format date range for display
+    start_str = since_dt.strftime("%b %d, %Y")
+    end_str = now.strftime("%b %d, %Y")
+
     if not leaderboard:
-        text = "📊 No commits found in the past week."
+        text = f"📊 No commits found in *{repo}* between {start_str} and {end_str}."
     else:
-        lines = [f"{i+1}. {author} – {count} commits" for i, (author, count) in enumerate(leaderboard)]
-        text = "🏆 Weekly Commit Champions:\n" + "\n".join(lines)
+        lines = [
+            f"{i+1}. {author} – {count} commits"
+            for i, (author, count) in enumerate(leaderboard)
+        ]
+        text = (
+            f"🏆 Weekly Commit Champions for *{repo}*\n"
+            f"As of {end_str} (covering {start_str} → {end_str}):\n"
+            + "\n".join(lines)
+        )
 
     send_slack_message(text)
 
